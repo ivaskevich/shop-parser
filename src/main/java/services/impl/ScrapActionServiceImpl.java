@@ -19,11 +19,9 @@ public class ScrapActionServiceImpl implements ScrapActionService {
     public ScrapActionServiceImpl() {
         this.siteRepresents = new ArrayList<>();
         initDriver();
-
     }
 
     public void initDriver() {
-//        WebDriverManager.chromedriver().setup();
         WebDriverManager.getInstance(ChromeDriver.class).setup();
         WebDriver driver = setChromeOptions();
         this.webDriver = new WebDriverImpl(driver);

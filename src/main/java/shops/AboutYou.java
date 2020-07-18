@@ -10,12 +10,15 @@ import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import services.impl.HttpGetCounter;
 import services.impl.ShopParserImpl;
+import services.impl.WebDriverImpl;
 import services.interfaces.ProductService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -26,16 +29,45 @@ public class AboutYou extends ShopParserImpl {
     }
 
     @Override
-    public void parseCurrentPage(WebDriver driver,String url) {
+    public void parseCurrentPage(WebDriverImpl driver, String url) {
         driver.get(url);
         Document document = getCurrentDocument(driver);
-        Elements elements = document.getElementsByAttributeValue("data-test-id", "ProductTile");
         driver.findElement(By.id("onetrust-accept-btn-handler")).click();
 
-        for (Element e : elements) {
-            driver.get(getShopUrl() + e.attr("href"));
+        Elements productTiles = document.getElementsByClass("ReactVirtualized__Grid__innerScrollContainer")
+                .first().getElementsByAttributeValue("data-test-id", "ProductTile");
+        List<String> productsUri = productTiles.stream().map(e -> e.attr("href"))
+                .collect(Collectors.toList());
+        Set<String> productsUrl = new HashSet<>(productsUri);
+
+        boolean notLastRow = true;
+        while (notLastRow) {
+            driver.executeScript("window.scrollBy(0," + getProductRowHeight(document) * 6 + ");");
+            document = getCurrentDocument(driver);
+
+            productTiles = document.getElementsByClass("ReactVirtualized__Grid__innerScrollContainer")
+                    .first().getElementsByAttributeValue("data-test-id", "ProductTile");
+            List<String> curProductsUri = productTiles.stream().map(e -> e.attr("href"))
+                    .collect(Collectors.toList());
+
+            notLastRow = !productsUri.containsAll(curProductsUri);
+            if (notLastRow) {
+                productsUri = curProductsUri;
+                productsUrl.addAll(productsUri);
+            }
+        }
+
+        for (String uri : productsUrl) {
+            driver.get(getShopUrl() + uri);
             splitForColors(driver);
         }
+    }
+
+    public double getProductRowHeight(Document document) {
+        return Double.parseDouble(
+                document.getElementsByAttributeValue("data-test-id", "MixedTileRowContainer")
+                        .first().attr("style")
+                        .split(";")[0].split(":")[1].split("px")[0]);
     }
 
     public void splitForColors(WebDriver driver) {

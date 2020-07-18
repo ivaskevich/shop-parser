@@ -1,12 +1,15 @@
 package services.impl;
 
+import lombok.Getter;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
 import java.util.Set;
 
+@Getter
 public class WebDriverImpl implements WebDriver {
     private final WebDriver webDriver;
     private final HttpGetCounter httpGetCounter;
@@ -14,11 +17,25 @@ public class WebDriverImpl implements WebDriver {
     /**
      * Custom WebDriver implementation in order to count requests
      *
-     * @param webDriver
+     * @param webDriver - WebDriver interface
      */
     public WebDriverImpl(WebDriver webDriver) {
         this.webDriver = webDriver;
         this.httpGetCounter = new HttpGetCounter();
+    }
+
+    public void executeScript(String query) {
+        JavascriptExecutor js = (JavascriptExecutor) webDriver;
+        js.executeScript(query);
+        sleep(1000);
+    }
+
+    public void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
