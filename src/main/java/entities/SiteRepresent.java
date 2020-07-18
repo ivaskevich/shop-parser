@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.openqa.selenium.WebDriver;
-import services.impl.ProductService;
+import services.interfaces.ProductService;
 
 import java.util.List;
 
@@ -12,7 +12,8 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public abstract class SiteRepresent {
-    private List<String> urls;
+    private String shopUrl;
+    private List<String> subUrls;
     private ProductService productService;
 
     public abstract void parseCurrentPage(WebDriver driver);
