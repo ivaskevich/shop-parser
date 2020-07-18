@@ -14,24 +14,33 @@ import java.util.List;
 @AllArgsConstructor
 public class ScrapActionServiceImpl implements ScrapActionService {
     private final List<SiteRepresent> siteRepresents;
+    private WebDriverImpl webDriver;
 
     public ScrapActionServiceImpl() {
         this.siteRepresents = new ArrayList<>();
+        initDriver();
+
+    }
+
+    public void initDriver() {
+//        WebDriverManager.chromedriver().setup();
+        WebDriverManager.getInstance(ChromeDriver.class).setup();
+        WebDriver driver = setChromeOptions();
+        this.webDriver = new WebDriverImpl(driver);
     }
 
     @Override
     public void performScraping() {
-        WebDriverManager.chromedriver().version("80.0.3987.106").setup();
-        WebDriverManager.getInstance(ChromeDriver.class).setup();
-        WebDriver driver = setChromeOptions();
-
         for (SiteRepresent site : siteRepresents) {
-            for (String url : site.getSubUrls()) {
-                driver.get(site.getShopUrl() + url);
-                site.parseCurrentPage(driver);
+            for (String uri : site.getSubUrls()) {
+                site.parseCurrentPage(webDriver, buildUrl(site.getShopUrl(), uri));
             }
         }
-        driver.quit();
+        webDriver.quit();
+    }
+
+    private String buildUrl(String domain, String uri) {
+        return domain + uri;
     }
 
     @Override

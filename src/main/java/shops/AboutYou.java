@@ -10,6 +10,7 @@ import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import services.impl.HttpGetCounter;
 import services.impl.ShopParserImpl;
 import services.interfaces.ProductService;
 
@@ -25,9 +26,12 @@ public class AboutYou extends ShopParserImpl {
     }
 
     @Override
-    public void parseCurrentPage(WebDriver driver) {
+    public void parseCurrentPage(WebDriver driver,String url) {
+        driver.get(url);
         Document document = getCurrentDocument(driver);
         Elements elements = document.getElementsByAttributeValue("data-test-id", "ProductTile");
+        driver.findElement(By.id("onetrust-accept-btn-handler")).click();
+
         for (Element e : elements) {
             driver.get(getShopUrl() + e.attr("href"));
             splitForColors(driver);
@@ -40,7 +44,6 @@ public class AboutYou extends ShopParserImpl {
                 .first().getElementsByTag("a");
         colors.remove(document.getElementsByAttributeValue("data-test-id", "ThumbnailsList")
                 .first().getElementsByClass("active").first().parent());
-        driver.findElement(By.id("onetrust-accept-btn-handler")).click();
         parseProduct(driver);
         for (Element color : colors) {
             driver.get(getShopUrl() + color.attr("href"));
@@ -219,6 +222,11 @@ public class AboutYou extends ShopParserImpl {
 
         if (priceElement == null) {
             priceElement = document.getElementsByAttributeValue("data-test-id", "ProductPriceCampaignWithSale")
+                    .first();
+        }
+
+        if (priceElement == null) {
+            priceElement = document.getElementsByAttributeValue("data-test-id", "ProductPriceCampaignWithoutSale")
                     .first();
         }
 
