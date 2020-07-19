@@ -2,6 +2,7 @@ package shops;
 
 import entities.Product;
 import entities.size.*;
+import exeptions.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.jsoup.nodes.Document;
@@ -59,7 +60,11 @@ public class AboutYou extends ShopParserImpl {
 
         for (String uri : productsUrl) {
             driver.get(getShopUrl() + uri);
-            splitForColors(driver);
+            try {
+                splitForColors(driver);
+            } catch (SplitColorsException e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -75,53 +80,92 @@ public class AboutYou extends ShopParserImpl {
             WebElement check = driver.findElement(By.id("onetrust-accept-btn-handler"));
             if (check != null) check.click();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
 
     }
 
-    public void splitForColors(WebDriver driver) {
-        Document document = getCurrentDocument(driver);
-        Elements colors = document.getElementsByAttributeValue("data-test-id", "ThumbnailsList")
-                .first().getElementsByTag("a");
-        colors.remove(document.getElementsByAttributeValue("data-test-id", "ThumbnailsList")
-                .first().getElementsByClass("active").first().parent());
-        parseProduct(driver);
-        for (Element color : colors) {
-            driver.get(getShopUrl() + color.attr("href"));
+    public void splitForColors(WebDriver driver) throws SplitColorsException {
+        try {
+            Document document = getCurrentDocument(driver);
+            Elements colors = document.getElementsByAttributeValue("data-test-id", "ThumbnailsList")
+                    .first().getElementsByTag("a");
+
             parseProduct(driver);
+            for (Element color : colors) {
+                if (!(getShopUrl() + color.attr("href")).equals(driver.getCurrentUrl())) {
+                    driver.get(getShopUrl() + color.attr("href"));
+                }
+                try {
+                    parseProduct(driver);
+                } catch (ProductParseException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        } catch (RuntimeException e) {
+            throw new SplitColorsException("On page : " + driver.getCurrentUrl());
         }
     }
 
     @Override
-    public void parseProduct(WebDriver driver) {
+    public void parseProduct(WebDriver driver) throws ProductParseException {
         Document document = getCurrentDocument(driver);
-        String articleId = parseArticleId(document);
-        String productName = parseName(document);
-        String brand = parseBrand(document);
-        String color = parseColor(document);
-        List<Size> sizes = parseSize(driver, document);
-        double price = parsePrice(document);
+        String articleId;
+        try {
+            articleId = parseArticleId(document);
+        } catch (RuntimeException e) {
+            throw new ArticleIdParseException("Product page : " + driver.getCurrentUrl());
+        }
+        String productName;
+        try {
+            productName = parseName(document);
+        } catch (RuntimeException e) {
+            throw new NameParseException("On product page : " + driver.getCurrentUrl());
+        }
+        String brand;
+        try {
+            brand = parseBrand(document);
+        } catch (RuntimeException e) {
+            throw new BrandParseException("On product page : " + driver.getCurrentUrl());
+        }
+        String color;
+        try {
+            color = parseColor(document);
+        } catch (RuntimeException e) {
+            throw new ColorParseException("On product page : " + driver.getCurrentUrl());
+        }
+        List<Size> sizes;
+        try {
+            sizes = parseSize(driver, document);
+        } catch (RuntimeException e) {
+            throw new SizeParseException("On product page : " + driver.getCurrentUrl());
+        }
+        double price;
+        try {
+            price = parsePrice(document);
+        } catch (RuntimeException e) {
+            throw new PriceParseException("On product page : " + driver.getCurrentUrl());
+        }
 
         Product product = new Product(articleId, productName, brand, color, sizes, price);
         getProductService().addProduct(product);
     }
 
     @Override
-    public String parseArticleId(Document document) {
+    public String parseArticleId(Document document) throws RuntimeException {
         return document.getElementsByAttributeValue("data-test-id", "ArticleNumber").text().split(" ")[1];
     }
 
     @Override
-    public String parseName(Document document) {
+    public String parseName(Document document) throws RuntimeException {
         return document.getElementsByAttributeValue("data-test-id", "ProductName").text();
     }
 
-    public String parseBrand(Document document) {
+    public String parseBrand(Document document) throws RuntimeException {
         return document.getElementsByAttributeValue("data-test-id", "BrandLogo").attr("alt");
     }
 
-    public String parseColor(Document document) {
+    public String parseColor(Document document) throws RuntimeException {
         String color;
         Element colorList = document.getElementsByAttributeValue("data-test-id", "ThumbnailsList")
                 .first();
@@ -136,7 +180,7 @@ public class AboutYou extends ShopParserImpl {
     }
 
     @Override
-    public List<Size> parseSize(WebDriver driver, Document document) {
+    public List<Size> parseSize(WebDriver driver, Document document) throws RuntimeException {
         List<Size> sizes = new ArrayList<>();
         Element sizeWrapper = document.getElementsByAttributeValue("data-test-id", "SizeSelectorWrapper").first();
 
@@ -163,7 +207,7 @@ public class AboutYou extends ShopParserImpl {
                             curSizes.add(size);
                         }
                     }
-                    driver.findElement(By.className("bBDHNF"));
+                    driver.findElement(By.xpath("//div[@data-test-id='SizeSelectorHeadlineInternationalSize']"));
                     document = getCurrentDocument(driver);
                     sizeSelector = document.getElementsByAttributeValue("data-test-id", "SizeBubbleList").first();
                     sizeElements = sizeSelector.children();
@@ -175,20 +219,29 @@ public class AboutYou extends ShopParserImpl {
                     }
                     sizes.addAll(curSizes);
                 } else {
-                    List<LabelSize> curSizes = new ArrayList<>();
-                    for (Element sizeChild : sizeElements) {
-                        if (sizeChild.attr("data-test-id").equals("SizeBubble_available")) {
-                            LabelSize size = new LabelSize();
-                            size.setLabel(sizeChild.children().first().text());
-                            curSizes.add(size);
+                    if (sizeElements.get(0).child(0).text().replace("-", "")
+                            .chars().allMatch(Character::isDigit)) {
+                        List<InchSize> curSizes = new ArrayList<>();
+                        for (Element sizeElement : sizeElements) {
+                            if (sizeElement.attr("data-test-id").equals("SizeBubble_available")) {
+                                curSizes.add(new InchSize(sizeElement.child(0).text()));
+                            }
                         }
+                        sizes.addAll(curSizes);
+                    } else {
+                        List<LabelSize> curSizes = new ArrayList<>();
+                        for (Element sizeElement : sizeElements) {
+                            if (sizeElement.attr("data-test-id").equals("SizeBubble_available")) {
+                                curSizes.add(new LabelSize(sizeElement.child(0).text()));
+                            }
+                        }
+                        sizes.addAll(curSizes);
                     }
-                    sizes.addAll(curSizes);
                 }
             }
             break;
             case "SingleSizeDropdown": {
-                driver.findElement(By.className("lhcQGG")).click();
+                driver.findElement(By.xpath("//button[@data-test-id='SingleSizeDropdownButton']")).click();
                 document = getCurrentDocument(driver);
                 Element dropdownList = document.getElementsByAttributeValue("data-test-id", "DropdownList").first();
                 Elements sizeElements = dropdownList
@@ -222,7 +275,8 @@ public class AboutYou extends ShopParserImpl {
             }
             break;
             case "DoubleSizeDropdown": {
-                List<WebElement> buttons = driver.findElements(By.className("lhcQGG"));
+                List<WebElement> buttons = driver
+                        .findElements(By.xpath("//button[@data-test-id='SingleSizeDropdownButton']"));
                 buttons.get(0).click();
                 document = getCurrentDocument(driver);
                 Element widthDropdownList = document
@@ -258,7 +312,7 @@ public class AboutYou extends ShopParserImpl {
     }
 
     @Override
-    public double parsePrice(Document document) {
+    public double parsePrice(Document document) throws RuntimeException {
         Element buyBox = document.getElementsByAttributeValue("data-test-id", "BuyBox").first();
         Element priceElement = buyBox.getElementsByAttributeValue("data-test-id", "ProductPriceFormattedBasePrice")
                 .first();

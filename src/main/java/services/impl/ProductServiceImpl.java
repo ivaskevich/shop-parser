@@ -21,9 +21,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void addProduct(Product p) {
-        if (p != null) {
-            productRepository.addProduct(p);
-        }
+        productRepository.addProduct(p);
     }
 
     @Override
@@ -34,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void writeJsonDataToFile() {
         try {
-            selectFolderAndSave(serialize());
+            selectFolderAndSave(serialize(),"products_data.json");
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

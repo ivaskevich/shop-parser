@@ -6,4 +6,6 @@ public interface ScrapActionService {
     void performScraping();
 
     void addSiteRepresent(SiteRepresent siteRepresent);
+
+    int getRequestsNumber();
 }

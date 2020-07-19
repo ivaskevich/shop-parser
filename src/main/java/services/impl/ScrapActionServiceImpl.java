@@ -50,4 +50,9 @@ public class ScrapActionServiceImpl implements ScrapActionService {
         ChromeOptions options = new ChromeOptions();
         return new ChromeDriver(options);
     }
+
+    @Override
+    public int getRequestsNumber(){
+        return webDriver.getHttpGetCounter().getCount();
+    }
 }

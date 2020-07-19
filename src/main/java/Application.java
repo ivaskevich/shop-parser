@@ -1,3 +1,4 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
 import entities.SiteRepresent;
 import repositories.impl.ProductRepositoryImpl;
 import repositories.interfaces.ProductRepository;
@@ -18,6 +19,10 @@ public class Application {
         ScrapActionService scrapActionService = new ScrapActionServiceImpl();
         scrapActionService.addSiteRepresent(aboutYou);
         scrapActionService.performScraping();
+
+        System.out.println("Number of products : " + productService.findAllProducts().size());
+        System.out.println("Number of requests : " + scrapActionService.getRequestsNumber());
+
         productService.writeJsonDataToFile();
     }
 }
