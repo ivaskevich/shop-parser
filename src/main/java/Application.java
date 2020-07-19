@@ -1,4 +1,3 @@
-import com.fasterxml.jackson.core.JsonProcessingException;
 import entities.SiteRepresent;
 import repositories.impl.ProductRepositoryImpl;
 import repositories.interfaces.ProductRepository;
@@ -12,6 +11,8 @@ import java.util.Collections;
 
 public class Application {
     public static void main(String[] args) {
+        System.setProperty("webdriver.chrome.silentOutput", "true");
+
         ProductRepository productRepository = new ProductRepositoryImpl();
         ProductService productService = new ProductServiceImpl(productRepository);
         SiteRepresent aboutYou = new AboutYou("https://www.aboutyou.de",

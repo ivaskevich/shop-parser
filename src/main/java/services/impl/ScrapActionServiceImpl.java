@@ -48,11 +48,12 @@ public class ScrapActionServiceImpl implements ScrapActionService {
 
     private ChromeDriver setChromeOptions() {
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--log-level=3");
         return new ChromeDriver(options);
     }
 
     @Override
-    public int getRequestsNumber(){
+    public int getRequestsNumber() {
         return webDriver.getHttpGetCounter().getCount();
     }
 }

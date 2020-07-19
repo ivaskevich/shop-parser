@@ -5,6 +5,7 @@ import entities.size.*;
 import exeptions.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 public class AboutYou extends ShopParserImpl {
+    static Logger logger = Logger.getLogger(AboutYou.class);
 
     public AboutYou(String shopUrl, List<String> urls, ProductService productService) {
         super(shopUrl, urls, productService);
@@ -62,7 +64,7 @@ public class AboutYou extends ShopParserImpl {
             try {
                 splitForColors(driver);
             } catch (SplitColorsException e) {
-                System.out.println(e.getMessage());
+                logger.error(e.getMessage());
             }
         }
     }
@@ -79,7 +81,7 @@ public class AboutYou extends ShopParserImpl {
             WebElement check = driver.findElement(By.id("onetrust-accept-btn-handler"));
             if (check != null) driver.click(check);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            logger.error(e.getMessage());
         }
 
     }
@@ -97,7 +99,7 @@ public class AboutYou extends ShopParserImpl {
                 try {
                     parseProduct(driver);
                 } catch (ProductParseException e) {
-                    System.out.println(e.getMessage());
+                    logger.error(e.getMessage());
                 }
             }
         } catch (RuntimeException e) {

@@ -1,11 +1,14 @@
 package utils;
 
+import org.apache.log4j.Logger;
+
 import javax.swing.*;
-import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class FileUtils {
+    static Logger logger = Logger.getLogger(FileUtils.class);
+
     public static void selectFolderAndSave(String data, String filename) {
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new java.io.File("."));
@@ -19,7 +22,7 @@ public class FileUtils {
                     new FileOutputStream(directory + "\\" + filename), StandardCharsets.UTF_8))) {
                 writer.write(data);
             } catch (IOException e) {
-                System.out.println(e.getMessage());
+                logger.error(e.getMessage());
             }
         }
     }
