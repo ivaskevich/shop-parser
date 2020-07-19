@@ -18,7 +18,7 @@ public abstract class ShopParserImpl extends SiteRepresent implements ShopParser
     }
 
     @Override
-    public Document getCurrentDocument(WebDriver driver) {
+    public Document getCurrentDocument(WebDriverImpl driver) {
         String pageSource = driver.getPageSource();
         return Jsoup.parse(pageSource);
     }

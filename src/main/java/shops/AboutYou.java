@@ -9,7 +9,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import services.impl.ShopParserImpl;
 import services.impl.WebDriverImpl;
@@ -75,23 +74,22 @@ public class AboutYou extends ShopParserImpl {
                         .split(";")[0].split(":")[1].split("px")[0]);
     }
 
-    public void checkHumanity(WebDriver driver) {
+    public void checkHumanity(WebDriverImpl driver) {
         try {
             WebElement check = driver.findElement(By.id("onetrust-accept-btn-handler"));
-            if (check != null) check.click();
+            if (check != null) driver.click(check);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
 
     }
 
-    public void splitForColors(WebDriver driver) throws SplitColorsException {
+    public void splitForColors(WebDriverImpl driver) throws SplitColorsException {
         try {
             Document document = getCurrentDocument(driver);
             Elements colors = document.getElementsByAttributeValue("data-test-id", "ThumbnailsList")
                     .first().getElementsByTag("a");
 
-            parseProduct(driver);
             for (Element color : colors) {
                 if (!(getShopUrl() + color.attr("href")).equals(driver.getCurrentUrl())) {
                     driver.get(getShopUrl() + color.attr("href"));
@@ -108,7 +106,7 @@ public class AboutYou extends ShopParserImpl {
     }
 
     @Override
-    public void parseProduct(WebDriver driver) throws ProductParseException {
+    public void parseProduct(WebDriverImpl driver) throws ProductParseException {
         Document document = getCurrentDocument(driver);
         String articleId;
         try {
@@ -180,7 +178,7 @@ public class AboutYou extends ShopParserImpl {
     }
 
     @Override
-    public List<Size> parseSize(WebDriver driver, Document document) throws RuntimeException {
+    public List<Size> parseSize(WebDriverImpl driver, Document document) throws RuntimeException {
         List<Size> sizes = new ArrayList<>();
         Element sizeWrapper = document.getElementsByAttributeValue("data-test-id", "SizeSelectorWrapper").first();
 
@@ -207,10 +205,12 @@ public class AboutYou extends ShopParserImpl {
                             curSizes.add(size);
                         }
                     }
-                    driver.findElement(By.xpath("//div[@data-test-id='SizeSelectorHeadlineInternationalSize']"));
+                    driver.click(driver
+                            .findElement(By.xpath("//div[@data-test-id='SizeSelectorHeadlineInternationalSize']")));
                     document = getCurrentDocument(driver);
                     sizeSelector = document.getElementsByAttributeValue("data-test-id", "SizeBubbleList").first();
                     sizeElements = sizeSelector.children();
+
                     for (int i = 0, j = 0; i < sizeElements.size(); i++) {
                         if (sizeElements.get(i).attr("data-test-id").equals("SizeBubble_selected") ||
                                 sizeElements.get(i).attr("data-test-id").equals("SizeBubble_available")) {
@@ -241,7 +241,7 @@ public class AboutYou extends ShopParserImpl {
             }
             break;
             case "SingleSizeDropdown": {
-                driver.findElement(By.xpath("//button[@data-test-id='SingleSizeDropdownButton']")).click();
+                driver.click(driver.findElement(By.xpath("//button[@data-test-id='SingleSizeDropdownButton']")));
                 document = getCurrentDocument(driver);
                 Element dropdownList = document.getElementsByAttributeValue("data-test-id", "DropdownList").first();
                 Elements sizeElements = dropdownList
@@ -249,7 +249,8 @@ public class AboutYou extends ShopParserImpl {
                 Element dropdownTitle = dropdownList
                         .getElementsByAttributeValue("data-test-id", "EmbeddedDropdownTitle").first();
 
-                if (dropdownTitle.children().size() != 0) {
+                if (dropdownTitle.children().size() != 0
+                        && dropdownTitle.child(0).children().stream().allMatch(Element::hasText)) {
                     List<LabelInchSize> curSizes = new ArrayList<>();
                     for (Element sizeElement : sizeElements) {
                         curSizes.add(new LabelInchSize(sizeElement.child(0).child(0).text(),
@@ -277,13 +278,13 @@ public class AboutYou extends ShopParserImpl {
             case "DoubleSizeDropdown": {
                 List<WebElement> buttons = driver
                         .findElements(By.xpath("//button[@data-test-id='SingleSizeDropdownButton']"));
-                buttons.get(0).click();
+                driver.click(buttons.get(0));
                 document = getCurrentDocument(driver);
                 Element widthDropdownList = document
                         .getElementsByAttributeValue("data-test-id", "DropdownList").first();
                 Elements widthSizeElements = widthDropdownList
                         .getElementsByAttributeValue("data-test-id", "DropdownItem_Active");
-                buttons.get(0).click();
+                driver.click(buttons.get(0));
                 String[] widthId = new String[widthSizeElements.size()];
                 for (int i = 0; i < widthSizeElements.size(); i++) {
                     widthId[i] = widthSizeElements.get(i).attr("id");
@@ -292,9 +293,9 @@ public class AboutYou extends ShopParserImpl {
                 int idSwitcher = 0;
                 for (Element widthElement : widthSizeElements) {
                     String width = widthElement.child(0).text();
-                    buttons.get(0).click();
-                    driver.findElement(By.id(widthId[idSwitcher++])).click();
-                    buttons.get(1).click();
+                    driver.click(buttons.get(0));
+                    driver.click(driver.findElement(By.id(widthId[idSwitcher++])));
+                    driver.click(buttons.get(1));
                     document = getCurrentDocument(driver);
                     Element lengthDropdownList = document
                             .getElementsByAttributeValue("data-test-id", "DropdownList").last();

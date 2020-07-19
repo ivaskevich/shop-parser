@@ -103,4 +103,14 @@ public class WebDriverImpl implements WebDriver {
     public Options manage() {
         return webDriver.manage();
     }
+
+    public void scrollToElement(WebElement element){
+        JavascriptExecutor executor = (JavascriptExecutor) webDriver;
+        executor.executeScript("arguments[0].scrollIntoView(true);", element);
+    }
+
+    public void click(WebElement element){
+        scrollToElement(element);
+        element.click();
+    }
 }

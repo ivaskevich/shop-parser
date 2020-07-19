@@ -32,6 +32,6 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public String serialize() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(this);
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
     }
 }
