@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import entities.size.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -12,18 +15,17 @@ import java.util.List;
 @Setter
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class Product {
 
     @JsonProperty("articleNumber")
     private String articleNumber;
-    @JsonProperty("name")
+    @JsonProperty("productName")
     private String productName;
     @JsonProperty("brand")
     private String brand;
     @JsonProperty("color")
     private String color;
-    @JsonProperty("size")
+    @JsonProperty("sizes")
     private List<Size> sizes;
     @JsonProperty("price")
     private double price;

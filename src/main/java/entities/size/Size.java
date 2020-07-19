@@ -1,5 +1,11 @@
 package entities.size;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 public interface Size {
-    String getSize();
+    String size();
+
+    String serialize() throws JsonProcessingException;
+
+    Size deserialize(String sizeDetails) throws JsonProcessingException;
 }

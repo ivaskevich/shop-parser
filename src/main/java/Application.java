@@ -14,11 +14,10 @@ public class Application {
         ProductRepository productRepository = new ProductRepositoryImpl();
         ProductService productService = new ProductServiceImpl(productRepository);
         SiteRepresent aboutYou = new AboutYou("https://www.aboutyou.de",
-                Collections.singletonList("/maenner/bekleidung"),productService);
+                Collections.singletonList("/maenner/bekleidung"), productService);
         ScrapActionService scrapActionService = new ScrapActionServiceImpl();
         scrapActionService.addSiteRepresent(aboutYou);
         scrapActionService.performScraping();
-
-        System.out.println("Products size  : " + productService.getAllProducts().size());
+        productService.writeJsonDataToFile();
     }
 }

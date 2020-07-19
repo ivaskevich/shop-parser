@@ -3,7 +3,6 @@ package services.interfaces;
 import entities.size.Size;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 import java.util.List;
 

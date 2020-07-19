@@ -1,11 +1,16 @@
 package services.interfaces;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import entities.Product;
 
 import java.util.List;
 
 public interface ProductService {
-    List<Product> getAllProducts();
+    List<Product> findAllProducts();
 
-    public void addProduct(Product p);
+    void addProduct(Product p);
+
+    String serialize() throws JsonProcessingException;
+
+    void writeJsonDataToFile();
 }

@@ -1,5 +1,7 @@
 package entities.size;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,10 +12,23 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LabelSize implements Size {
+
     private String label;
 
     @Override
-    public String getSize() {
-        return null;
+    public String size() {
+        return label;
+    }
+
+    @Override
+    public String serialize() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(this);
+    }
+
+    @Override
+    public Size deserialize(String sizeDetails) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(sizeDetails, LabelSize.class);
     }
 }

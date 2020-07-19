@@ -32,7 +32,7 @@ public class AboutYou extends ShopParserImpl {
     public void parseCurrentPage(WebDriverImpl driver, String url) {
         driver.get(url);
         Document document = getCurrentDocument(driver);
-        driver.findElement(By.id("onetrust-accept-btn-handler")).click();
+        checkHumanity(driver);
 
         Elements productTiles = document.getElementsByClass("ReactVirtualized__Grid__innerScrollContainer")
                 .first().getElementsByAttributeValue("data-test-id", "ProductTile");
@@ -42,7 +42,7 @@ public class AboutYou extends ShopParserImpl {
 
         boolean notLastRow = true;
         while (notLastRow) {
-            driver.executeScript("window.scrollBy(0," + getProductRowHeight(document) * 6 + ");");
+            driver.executeScript("window.scrollBy(0," + getProductRowHeight(document) * 5 + ");");
             document = getCurrentDocument(driver);
 
             productTiles = document.getElementsByClass("ReactVirtualized__Grid__innerScrollContainer")
@@ -68,6 +68,16 @@ public class AboutYou extends ShopParserImpl {
                 document.getElementsByAttributeValue("data-test-id", "MixedTileRowContainer")
                         .first().attr("style")
                         .split(";")[0].split(":")[1].split("px")[0]);
+    }
+
+    public void checkHumanity(WebDriver driver) {
+        try {
+            WebElement check = driver.findElement(By.id("onetrust-accept-btn-handler"));
+            if (check != null) check.click();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     public void splitForColors(WebDriver driver) {
@@ -167,7 +177,7 @@ public class AboutYou extends ShopParserImpl {
                 } else {
                     List<LabelSize> curSizes = new ArrayList<>();
                     for (Element sizeChild : sizeElements) {
-                        if (sizeChild.attr("data-test-id").equals("SizeBubble_selected")) {
+                        if (sizeChild.attr("data-test-id").equals("SizeBubble_available")) {
                             LabelSize size = new LabelSize();
                             size.setLabel(sizeChild.children().first().text());
                             curSizes.add(size);
@@ -249,21 +259,22 @@ public class AboutYou extends ShopParserImpl {
 
     @Override
     public double parsePrice(Document document) {
-        Element priceElement = document.getElementsByAttributeValue("data-test-id", "ProductPriceFormattedBasePrice")
+        Element buyBox = document.getElementsByAttributeValue("data-test-id", "BuyBox").first();
+        Element priceElement = buyBox.getElementsByAttributeValue("data-test-id", "ProductPriceFormattedBasePrice")
                 .first();
 
         if (priceElement == null) {
-            priceElement = document.getElementsByAttributeValue("data-test-id", "ProductPriceCampaignWithSale")
+            priceElement = buyBox.getElementsByAttributeValue("data-test-id", "ProductPriceCampaignWithSale")
                     .first();
         }
 
         if (priceElement == null) {
-            priceElement = document.getElementsByAttributeValue("data-test-id", "ProductPriceCampaignWithoutSale")
+            priceElement = buyBox.getElementsByAttributeValue("data-test-id", "ProductPriceCampaignWithoutSale")
                     .first();
         }
 
         if (priceElement == null) {
-            priceElement = document.getElementsByAttributeValue("data-test-id", "FormattedSalePrice")
+            priceElement = buyBox.getElementsByAttributeValue("data-test-id", "FormattedSalePrice")
                     .first();
         }
 
